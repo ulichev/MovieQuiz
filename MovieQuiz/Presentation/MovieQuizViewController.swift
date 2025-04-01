@@ -7,6 +7,8 @@ final class MovieQuizViewController: UIViewController {
     @IBOutlet private weak var counterLabel: UILabel!
     @IBOutlet private weak var textLabel: UILabel!
     @IBOutlet private weak var imageView: UIImageView!
+    @IBOutlet private weak var yesButton: UIButton!
+    @IBOutlet private weak var noButton: UIButton!
     
 // MARK: -Models
 
@@ -80,6 +82,7 @@ final class MovieQuizViewController: UIViewController {
 // MARK: -IBActions
 
     @IBAction private func yesButtonClicked(_ sender: Any) {
+        setButtonsEnabled(false)
         let currentQuestion = questions[currentQuestionIndex]
         let givenAnswer = true
         
@@ -87,6 +90,7 @@ final class MovieQuizViewController: UIViewController {
     }
     
     @IBAction private func noButtonClicked(_ sender: Any) {
+        setButtonsEnabled(false)
         let currentQuestion = questions[currentQuestionIndex]
         let givenAnswer = false
         
@@ -97,6 +101,8 @@ final class MovieQuizViewController: UIViewController {
    
     override func viewDidLoad() {
         super.viewDidLoad()
+        imageView.layer.cornerRadius = 20
+        imageView.clipsToBounds = true
         show(quiz: convert(model: questions[currentQuestionIndex]))
     }
 
@@ -147,7 +153,6 @@ final class MovieQuizViewController: UIViewController {
         
         imageView.layer.masksToBounds = true
         imageView.layer.borderWidth = 8
-        imageView.layer.cornerRadius = 20
         
         UIView.animate(withDuration: 0.3) { // добавил анимацию
             self.imageView.layer.borderColor = isCorrect ? UIColor.ypGreen.cgColor : UIColor.ypRed.cgColor
@@ -155,6 +160,7 @@ final class MovieQuizViewController: UIViewController {
         
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
             self.showNextQuestionOrResults()
+            self.setButtonsEnabled(true)
             }
     }
 
@@ -175,6 +181,11 @@ final class MovieQuizViewController: UIViewController {
             let viewModel = convert(model: nextQuestion)
             show(quiz: viewModel)
         }
+    }
+    
+    private func setButtonsEnabled(_ isEnabled: Bool) {
+        yesButton.isEnabled = isEnabled
+        noButton.isEnabled = isEnabled
     }
     
 }
