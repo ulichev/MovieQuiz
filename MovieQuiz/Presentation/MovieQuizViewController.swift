@@ -79,6 +79,15 @@ final class MovieQuizViewController: UIViewController {
             correctAnswer: false),
         ]
     
+// MARK: -Lifecycle
+       
+        override func viewDidLoad() {
+            super.viewDidLoad()
+            imageView.layer.cornerRadius = 20
+            imageView.clipsToBounds = true
+            show(quiz: convert(model: questions[currentQuestionIndex]))
+        }
+    
 // MARK: -IBActions
 
     @IBAction private func yesButtonClicked(_ sender: Any) {
@@ -97,14 +106,7 @@ final class MovieQuizViewController: UIViewController {
         showAnswerResult(isCorrect: givenAnswer == currentQuestion.correctAnswer)
     }
     
-// MARK: -Lifecycle
-   
-    override func viewDidLoad() {
-        super.viewDidLoad()
-        imageView.layer.cornerRadius = 20
-        imageView.clipsToBounds = true
-        show(quiz: convert(model: questions[currentQuestionIndex]))
-    }
+
 
 // MARK: -Quiz logic methods
     
