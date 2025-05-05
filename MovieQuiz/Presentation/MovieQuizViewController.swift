@@ -62,7 +62,7 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
         counterLabel.text = step.questionNumber
     }
     
-    private func show(quiz result: QuizResultsViewModel) {
+    func show(quiz result: QuizResultsViewModel) {
         
         statisticService.store(correct: correctAnswers, total: presenter.questionsAmount)
 
@@ -148,35 +148,20 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
         
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in
             guard let self = self else { return }
-            
-            self.showNextQuestionOrResults()
+
+            self.presenter.correctAnswers = self.correctAnswers
+            self.presenter.questionFactory = self.questionFactory
+            self.presenter.showNextQuestionOrResults()
             self.setButtonsEnabled(true)
-        }
-    }
-    
-    private func showNextQuestionOrResults() {
-        imageView.layer.borderColor = UIColor.clear.cgColor
-        
-        if presenter.isLastQuestion() {
-            statisticService.store(correct: correctAnswers, total: presenter.questionsAmount)
-            
-            let text = correctAnswers == presenter.questionsAmount ?
-            "Поздравляем, вы ответили на 10 из 10!" :
-            "Вы ответили на \(correctAnswers) из 10, попробуйте ещё раз!"
-            
-            let viewModel = QuizResultsViewModel(
-                title: "Этот раунд окончен!",
-                text: text,
-                buttonText: "Сыграть ещё раз")
-            show(quiz: viewModel)
-        } else {
-            presenter.switchToNextQuestion()
-            questionFactory?.requestNextQuestion()
         }
     }
     
     func setButtonsEnabled(_ isEnabled: Bool) {
         yesButton.isEnabled = isEnabled
         noButton.isEnabled = isEnabled
+    }
+    
+    func clearImageBorder() {
+        imageView.layer.borderColor = UIColor.clear.cgColor
     }
 }

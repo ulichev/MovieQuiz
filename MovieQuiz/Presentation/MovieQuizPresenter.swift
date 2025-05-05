@@ -4,9 +4,11 @@ import UIKit
 final class MovieQuizPresenter {
     
     let questionsAmount: Int = 10
-    private var currentQuestionIndex = 0
+    var currentQuestionIndex = 0
     var currentQuestion: QuizQuestion?
     weak var viewController: MovieQuizViewController?
+    var correctAnswers = 0
+    var questionFactory: QuestionFactoryProtocol?
     
     func yesButtonClicked() {
         didAnswer(isYes: true)
@@ -16,12 +18,12 @@ final class MovieQuizPresenter {
         didAnswer(isYes: false)
     }
     
-    private func didAnswer(isYes: Bool) {
+    func didAnswer(isYes: Bool) {
         viewController?.setButtonsEnabled(false)
         guard let currentQuestion = currentQuestion else {
             return
         }
-        let givenAnswer = true
+        let givenAnswer = isYes
         
         viewController?.showAnswerResult(isCorrect: givenAnswer == currentQuestion.correctAnswer)
     }
@@ -36,6 +38,23 @@ final class MovieQuizPresenter {
         
         DispatchQueue.main.async { [weak self] in
             self?.viewController?.show(quiz: viewModel)
+        }
+    }
+    
+    func showNextQuestionOrResults() {
+        viewController?.clearImageBorder()
+        
+        if self.isLastQuestion() {
+            let text = "Вы ответили на \(correctAnswers) из 10, попробуйте ещё раз!"
+            
+            let viewModel = QuizResultsViewModel(
+                title: "Этот раунд окончен!",
+                text: text,
+                buttonText: "Сыграть ещё раз")
+            viewController?.show(quiz: viewModel)
+        } else {
+            self.switchToNextQuestion()
+            questionFactory?.requestNextQuestion()
         }
     }
     
