@@ -41,35 +41,22 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
     // MARK: - QuestionFactoryDelegate
     
     func didReceiveNextQuestion(question: QuizQuestion?) {
-        guard let question = question else {
-            return
-        }
-        
-        presenter.currentQuestion = question
-        let viewModel = presenter.convert(model: question)
-        
-        DispatchQueue.main.async { [weak self] in
-            self?.show(quiz: viewModel)
-        }
+        presenter.didRecieveNextQuestion(question: question)
     }
     
     // MARK: - IBActions
     
     @IBAction private func yesButtonClicked(_ sender: Any) {
-        setButtonsEnabled(false)
-        presenter.currentQuestion = presenter.currentQuestion
         presenter.yesButtonClicked()
     }
     
     @IBAction private func noButtonClicked(_ sender: Any) {
-        setButtonsEnabled(false)
-        presenter.currentQuestion = presenter.currentQuestion
         presenter.noButtonClicked()
     }
     
     // MARK: - Quiz logic methods
     
-    private func show(quiz step: QuizStepViewModel) {
+    func show(quiz step: QuizStepViewModel) {
         textLabel.text = step.question
         imageView.image = step.image
         counterLabel.text = step.questionNumber

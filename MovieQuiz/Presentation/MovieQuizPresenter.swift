@@ -9,6 +9,14 @@ final class MovieQuizPresenter {
     weak var viewController: MovieQuizViewController?
     
     func yesButtonClicked() {
+        didAnswer(isYes: true)
+    }
+    
+    func noButtonClicked() {
+        didAnswer(isYes: false)
+    }
+    
+    private func didAnswer(isYes: Bool) {
         viewController?.setButtonsEnabled(false)
         guard let currentQuestion = currentQuestion else {
             return
@@ -18,14 +26,17 @@ final class MovieQuizPresenter {
         viewController?.showAnswerResult(isCorrect: givenAnswer == currentQuestion.correctAnswer)
     }
     
-    func noButtonClicked() {
-        viewController?.setButtonsEnabled(false)
-        guard let currentQuestion = currentQuestion else {
+    func didRecieveNextQuestion(question: QuizQuestion?) {
+        guard let question = question else {
             return
         }
-        let givenAnswer = false
         
-        viewController?.showAnswerResult(isCorrect: givenAnswer == currentQuestion.correctAnswer)
+        currentQuestion = question
+        let viewModel = convert(model: question)
+        
+        DispatchQueue.main.async { [weak self] in
+            self?.viewController?.show(quiz: viewModel)
+        }
     }
     
     func convert(model: QuizQuestion) -> QuizStepViewModel {
