@@ -1,6 +1,6 @@
 import UIKit
 
-final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
+final class MovieQuizViewController: UIViewController {
     
     // MARK: - IBOutlets
     
@@ -13,35 +13,23 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
     
     // MARK: - Properties
     
-    private var correctAnswers = 0
-    private var questionFactory: QuestionFactoryProtocol?
     private var alertPresenter: AlertPresenter?
     private var statisticService: StatisticServiceProtocol!
-    private let presenter = MovieQuizPresenter()
+    private var presenter: MovieQuizPresenter!
     
     // MARK: - Lifecycle
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        presenter.viewController = self
                 
         alertPresenter = AlertPresenter(viewController: self)
         statisticService = StatisticService()
+        presenter = MovieQuizPresenter(viewController: self)
         
         imageView.layer.cornerRadius = 20
         imageView.clipsToBounds = true
         
-        let questionFactory = QuestionFactory(moviesLoader: MoviesLoader(), delegate: self)
-        self.questionFactory = questionFactory
-        
         showLoadingIndicator()
-        questionFactory.loadData()
-    }
-
-    // MARK: - QuestionFactoryDelegate
-    
-    func didReceiveNextQuestion(question: QuizQuestion?) {
-        presenter.didRecieveNextQuestion(question: question)
     }
     
     // MARK: - IBActions
@@ -63,59 +51,36 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
     }
     
     func show(quiz result: QuizResultsViewModel) {
-        
-        statisticService.store(correct: correctAnswers, total: presenter.questionsAmount)
-
-        let bestGame = statisticService.bestGame
-        let currentGameResultLine = "Ваш результат: \(correctAnswers)/\(presenter.questionsAmount)"
-
-        let message = """
-        \(currentGameResultLine)
-        Количество сыгранных квизов: \(statisticService.gamesCount)
-        Рекорд: \(bestGame.correct)/\(bestGame.total) (\(bestGame.date.dateTimeString))
-        Средняя точность: \(String(format: "%.2f", statisticService.totalAccuracy))%
-        """
-        
-        let alert = UIAlertController(
-            title: result.title,
-            message: message,
-            preferredStyle: .alert
-        )
-        
-        let action = UIAlertAction(
-            title: result.buttonText,
-            style: .default) {
-                [weak self] _ in
-                guard let self = self else { return }
-                self.presenter.resetQuestionIndex()
-                self.correctAnswers = 0
-                self.questionFactory?.requestNextQuestion()
+            let message = presenter.makeResultsMessage()
+            
+            let alert = UIAlertController(
+                title: result.title,
+                message: message,
+                preferredStyle: .alert)
+                
+            let action = UIAlertAction(title: result.buttonText, style: .default) { [weak self] _ in
+                    guard let self = self else { return }
+                    
+                    self.presenter.restartGame()
             }
-        
-        alert.addAction(action)
-        present(alert, animated: true)
-        
-    }
-    
-    // MARK: - QuestionFactoryDelegate
-    
-    func didLoadDataFromServer() {
-        activityIndicator.isHidden = true // скрываем индикатор загрузки
-        questionFactory?.requestNextQuestion() // загружаем первый вопрос
-    }
-
-    func didFailToLoadData(with error: Error) {
-        showNetworkError(message: error.localizedDescription) // показываем ошибку
-    }
+            
+            alert.addAction(action)
+            
+            self.present(alert, animated: true, completion: nil)
+        }
     
     // MARK: - UI updates methods
     
-    private func showLoadingIndicator() {
+    func showLoadingIndicator() {
         activityIndicator.isHidden = false
         activityIndicator.startAnimating()
     }
     
-    private func showNetworkError(message: String) {
+    func hideLoadingIndicator() {
+        activityIndicator.isHidden = true
+    }
+    
+    func showNetworkError(message: String) {
         showLoadingIndicator()
         
         let alertModel = AlertModel(
@@ -125,10 +90,8 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
         ) { [weak self] in
             guard let self = self else { return }
             
-            self.presenter.resetQuestionIndex()
-            self.correctAnswers = 0
-            
-            self.questionFactory?.requestNextQuestion()
+            self.presenter.restartGame()
+            self.presenter.correctAnswers = 0
         }
         
         alertPresenter?.show(alertModel: alertModel)
@@ -136,7 +99,7 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
     
     func showAnswerResult(isCorrect: Bool) {
         if isCorrect {
-            correctAnswers += 1
+            presenter.correctAnswers += 1
         }
         
         imageView.layer.masksToBounds = true
@@ -149,8 +112,6 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in
             guard let self = self else { return }
 
-            self.presenter.correctAnswers = self.correctAnswers
-            self.presenter.questionFactory = self.questionFactory
             self.presenter.showNextQuestionOrResults()
             self.setButtonsEnabled(true)
         }
@@ -164,4 +125,5 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
     func clearImageBorder() {
         imageView.layer.borderColor = UIColor.clear.cgColor
     }
+    
 }
