@@ -1,6 +1,6 @@
 import UIKit
 
-final class MovieQuizViewController: UIViewController {
+final class MovieQuizViewController: UIViewController, MovieQuizViewControllerProtocol {
     
     // MARK: - IBOutlets
     
@@ -24,7 +24,7 @@ final class MovieQuizViewController: UIViewController {
                 
         alertPresenter = AlertPresenter(viewController: self)
         statisticService = StatisticService()
-        presenter = MovieQuizPresenter(viewController: self)
+        presenter = MovieQuizPresenter(viewController: self as MovieQuizViewControllerProtocol)
         
         imageView.layer.cornerRadius = 20
         imageView.clipsToBounds = true

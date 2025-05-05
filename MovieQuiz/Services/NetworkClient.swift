@@ -1,6 +1,6 @@
 import Foundation
 
-struct NetworkClient {
+struct NetworkClient: NetworkClientProtocol {
 
     private enum NetworkError: Error {
         case codeError
