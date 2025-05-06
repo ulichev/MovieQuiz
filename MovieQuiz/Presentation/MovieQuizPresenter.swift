@@ -1,28 +1,25 @@
-import Foundation
 import UIKit
 
 final class MovieQuizPresenter: QuestionFactoryDelegate {
     
     // MARK: - Properties
     
-    let questionsAmount: Int = 10
-    var currentQuestionIndex = 0
-    var currentQuestion: QuizQuestion?
+    private(set) var currentQuestionIndex = 0
+    private(set) var currentQuestion: QuizQuestion?
+    private(set) var correctAnswers = 0
     private weak var viewController: MovieQuizViewControllerProtocol?
-    var correctAnswers = 0
     private var questionFactory: QuestionFactoryProtocol?
-    private let statisticService: StatisticServiceProtocol!
-    
+    private let statisticService: StatisticServiceProtocol
+    let questionsAmount: Int = 10
     
     // MARK: - Initializer
     
     init(viewController: MovieQuizViewControllerProtocol) {
         self.viewController = viewController
         
-        statisticService = StatisticService()
+        self.statisticService = StatisticService()
         
-        
-        questionFactory = QuestionFactory(moviesLoader: MoviesLoader(), delegate: self)
+        self.questionFactory = QuestionFactory(moviesLoader: MoviesLoader(), delegate: self)
         questionFactory?.loadData()
         viewController.showLoadingIndicator()
     }
@@ -51,9 +48,7 @@ final class MovieQuizPresenter: QuestionFactoryDelegate {
     
     func didAnswer(isYes: Bool) {
         viewController?.setButtonsEnabled(false)
-        guard let currentQuestion = currentQuestion else {
-            return
-        }
+        guard let currentQuestion else { return }
         let givenAnswer = isYes
         
         showAnswerResult(isCorrect: givenAnswer == currentQuestion.correctAnswer)
@@ -62,9 +57,7 @@ final class MovieQuizPresenter: QuestionFactoryDelegate {
     // MARK: - Question Management
     
     func didRecieveNextQuestion(question: QuizQuestion?) {
-        guard let question = question else {
-            return
-        }
+        guard let question else { return }
         
         currentQuestion = question
         let viewModel = convert(model: question)
@@ -109,7 +102,7 @@ final class MovieQuizPresenter: QuestionFactoryDelegate {
         viewController?.highlightImageBorder(isCorrectAnswer: isCorrect)
                     
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in
-            guard let self = self else { return }
+            guard let self else { return }
             self.showNextQuestionOrResults()
         }
     }
