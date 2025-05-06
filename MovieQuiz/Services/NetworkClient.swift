@@ -1,8 +1,12 @@
 import Foundation
 
+<<<<<<< HEAD
 protocol NetworkRouting {
     func fetch(url: URL, handler: @escaping (Result<Data, Error>) -> Void)
 }
+=======
+struct NetworkClient: NetworkClientProtocol {
+>>>>>>> sprint_07
 
 struct NetworkClient: NetworkRouting {
     
